@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   modules: ["@nuxt/ui"],
   runtimeConfig: {
     public: {
-      API_BASE: 'http://localhost:3030/'
+      API_BASE: 'http://www.buketinapi.rezaaar.my.id'
     }
   }
 });
