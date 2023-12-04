@@ -185,7 +185,7 @@ const submitFile = async () => {
 
   // console.log(formData.get(file));
   try {
-    const uploadEndpoint = "http://localhost:3030/upload/one";
+    const uploadEndpoint = config.public.API_BASE + 'upload/one';
     // const response = await axios.post(endpoint, data);
 
     const { data: dataImage } = await useFetch(uploadEndpoint, {
