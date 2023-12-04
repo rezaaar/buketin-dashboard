@@ -16,7 +16,7 @@
               <template #header>
                 <div class="flex items-center justify-between">
                   <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
-                    New Category
+                    New Occasion
                   </h3>
                   <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1"
                     @click="isModalCreateOpen = false" />
@@ -24,12 +24,8 @@
               </template>
 
               <UForm :validate="validate" :state="state" class="space-y-4" @submit="onSubmit">
-                <UFormGroup label="Email" name="email">
-                  <UInput v-model="state.email" />
-                </UFormGroup>
-
-                <UFormGroup label="Password" name="password">
-                  <UInput v-model="state.password" type="password" />
+                <UFormGroup label="Occasion name" name="name">
+                  <UInput v-model="state.name" />
                 </UFormGroup>
 
                 <UButton type="submit">
@@ -47,8 +43,8 @@
         <UTable :rows="occasion" :columns="columns">
           <template #actions-data="{ row }">
             <div class="flex space-x-4">
-              <UButton color="red" variant="ghost" icon="i-heroicons-trash" label="Delete" />
-              <UButton color="sky" variant="ghost" icon="i-heroicons-adjustments-vertical" label="Update" />
+              <UButton color="red" variant="ghost" icon="i-heroicons-trash" label="Delete"
+                @click="deleteCategory(row._id)" />
             </div>
           </template>
         </UTable>
@@ -59,8 +55,7 @@
 
 <script setup>
 const state = reactive({
-  email: undefined,
-  password: undefined
+  name: undefined,
 })
 const isModalCreateOpen = ref(false)
 const occasion = ref([])
@@ -75,22 +70,51 @@ const columns = [
     label: 'Action'
   }
 ]
-
-const { data: dataOccasion, pending, error, refresh } = await useGetFetch('occasion', {})
+const config = useRuntimeConfig()
+const { data: dataOccasion, pending, error, refresh } = await useGetFetch('occasion', {
+  onResponse({ request, response, options }) {
+    occasion.value = response._data.occasionData
+  }
+})
 
 const validate = (state) => {
   const errors = []
-  if (!state.email) errors.push({ path: 'email', message: 'Required' })
-  if (!state.password) errors.push({ path: 'password', message: 'Required' })
+  if (!state.name) errors.push({ path: 'name', message: 'Required' })
   return errors
 }
 
 async function onSubmit(event) {
   // Do something with data
   // console.log(event.data)
+  const { data, pending, error, refresh } = await useFetch('occasion', {
+    baseURL: config.public.API_BASE,
+    method: 'POST',
+    body: {
+      name: state.name
+    },
+    onResponse({ request, response, options }) {
+      occasion.value.push(response._data.newOccasion)
+      isModalCreateOpen.value = false
+      state = {
+        name: undefined,
+      }
+    }
+  })
 }
 
-occasion.value = dataOccasion.value.occasionData
+async function deleteCategory(id) {
+  const { data, pending, error, refresh } = await useFetch(`occasion/${id}`, {
+    baseURL: config.public.API_BASE,
+    method: 'DELETE',
+    onResponse({ request, response, options }) {
+      const deletedIndex = occasion.value.findIndex((el) => {
+        return el._id == response._data.deletedOccasion._id
+      })
+      occasion.value.splice(deletedIndex, 1)
+    }
+  })
+}
+
 
 
 </script>

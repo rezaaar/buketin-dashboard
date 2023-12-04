@@ -24,12 +24,8 @@
               </template>
 
               <UForm :validate="validate" :state="state" class="space-y-4" @submit="onSubmit">
-                <UFormGroup label="Email" name="email">
-                  <UInput v-model="state.email" />
-                </UFormGroup>
-
-                <UFormGroup label="Password" name="password">
-                  <UInput v-model="state.password" type="password" />
+                <UFormGroup label="Category name" name="name">
+                  <UInput v-model="state.name" />
                 </UFormGroup>
 
                 <UButton type="submit">
@@ -47,8 +43,7 @@
         <UTable :rows="category" :columns="columns">
           <template #actions-data="{ row }">
             <div class="flex space-x-4">
-              <UButton color="red" variant="ghost" icon="i-heroicons-trash" label="Delete" />
-              <UButton color="sky" variant="ghost" icon="i-heroicons-adjustments-vertical" label="Update" />
+              <UButton color="red" variant="ghost" icon="i-heroicons-trash" label="Delete" @click="deleteCategory(row._id)" />
             </div>
           </template>
         </UTable>
@@ -59,8 +54,7 @@
 
 <script setup>
 const state = reactive({
-  email: undefined,
-  password: undefined
+  name: undefined,
 })
 const isModalCreateOpen = ref(false)
 const category = ref([])
@@ -75,22 +69,48 @@ const columns = [
     label: 'Action'
   }
 ]
+const config = useRuntimeConfig()
 
 const { data: dataCategory, pending, error, refresh } = await useGetFetch('category', {})
+category.value = dataCategory.value.categoryData
+
 
 const validate = (state) => {
   const errors = []
-  if (!state.email) errors.push({ path: 'email', message: 'Required' })
-  if (!state.password) errors.push({ path: 'password', message: 'Required' })
+  if (!state.name) errors.push({ path: 'name', message: 'Required' })
   return errors
 }
 
 async function onSubmit(event) {
-  // Do something with data
-  // console.log(event.data)
+  const { data: dataCategory, pending, error, refresh } = await useFetch('category', {
+    method: 'POST',
+    baseURL: config.public.API_BASE,
+    body: {
+      name: state.name
+    },
+    onResponse({ request, response, options }) {
+      category.value.push(response._data.newCategory)
+      isModalCreateOpen.value = false
+      state = {
+        name: undefined,
+      }
+    }
+  })
 }
 
-category.value = dataCategory.value.categoryData
+async function deleteCategory(id) {
+  await useFetch(`category/${id}`, {
+    baseURL: config.public.API_BASE,
+    method: "DELETE",
+    onResponse({ request, response, options }) {
+      const deletedIndex = category.value.findIndex((el) => {
+        return el._id == response._data.deletedCategory._id
+      })
+      category.value.splice(deletedIndex, 1)
+    }
+  })
+}
+
 
 
 </script>

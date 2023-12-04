@@ -95,7 +95,7 @@
 
           <template #image-data="{ row }">
             <div>
-              <img :src="`http://localhost:3030//images/${row.image}`" alt="" class="w-20 h-20 object-cover rounded-md">
+              <img :src="`${config.public.API_BASE}/images/${row.image}`" alt="" class="w-20 h-20 object-cover rounded-md">
             </div>
           </template>
 
