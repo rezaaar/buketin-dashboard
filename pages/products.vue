@@ -225,6 +225,19 @@ async function onSubmit(event) {
       category: state.category,
       occasion: selectedOccasion.value,
       image: uploadedImage.value
+    },
+    onResponse({ request, response, options }) {
+      products.value.push(response._data.newProduct)
+      isModalCreateOpen.value = false
+      selectedOccasion.value = null
+      uploadedImage.value = null
+      state = {
+        name: undefined,
+        price: undefined,
+        description: undefined,
+        category: undefined,
+      }
+    
     }
   });
 }
