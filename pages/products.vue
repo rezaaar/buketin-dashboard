@@ -210,7 +210,6 @@ const validate = (state) => {
   if (!state.description) errors.push({ path: 'description', message: 'Required' })
   if (!state.category) errors.push({ path: 'category', message: 'Required' })
   if (!selectedOccasion.value) errors.push({ path: 'occasion', message: 'Required' })
-  if (!uploadedImage.value) errors.push({ path: 'image', message: 'Required' })
   return errors
 }
 
