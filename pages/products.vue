@@ -95,13 +95,17 @@
 
           <template #image-data="{ row }">
             <div>
-              <img :src="`${config.public.API_BASE}/images/${row.image}`" alt="" class="w-20 h-20 object-cover rounded-md">
+              <img :src="`${config.public.API_BASE}/images/${row.image}`" alt=""
+                class="w-20 h-20 object-cover rounded-md">
             </div>
           </template>
 
           <template #actions-data="{ row }">
             <div class="flex space-x-4">
-              <UButton color="red" variant="ghost" icon="i-heroicons-trash" label="Delete" @click="deleteProduct(row._id)"/>
+              <UButton color="red" variant="ghost" icon="i-heroicons-trash" label="Delete"
+                @click="deleteProduct(row._id)" />
+              <UButton color="sky" variant="ghost" icon="i-heroicons-command-line" label="Update"
+                @click="updateProduct(row._id)" />
             </div>
           </template>
         </UTable>
@@ -116,6 +120,8 @@ const categories = ref([])
 const occasions = ref([])
 const selectedOccasion = ref([])
 const uploadedImage = ref(null)
+const isUpdate = ref(false);
+const selectedProduct = ref()
 const state = reactive({
   name: undefined,
   price: undefined,
@@ -215,7 +221,33 @@ const validate = (state) => {
 
 async function onSubmit(event) {
   // Do something with data
-  const { data: dataProduct } = useFetch('product', {
+  if (isUpdate.value) {
+    const { data: dataProduct } = await useFetch(`product/${selectedProduct.value}`, {
+      baseURL: config.public.API_BASE,
+      method: 'PUT',
+      body: {
+        name: state.name,
+        price: parseInt(state.price, 10),
+        description: state.description,
+        category: state.category,
+        occasion: selectedOccasion.value,
+        image: uploadedImage.value
+      },
+      onResponse({ request, response, options }) {
+        // products.value.push(response._data.newProduct)
+        isModalCreateOpen.value = false
+        occasions.value = []
+        state.category = undefined
+        state.name = undefined
+        state.price = undefined
+        state.description = undefined
+      }
+    });
+
+    return
+  }
+
+  const { data: dataProduct } = await useFetch('product', {
     baseURL: config.public.API_BASE,
     method: 'POST',
     body: {
@@ -229,24 +261,46 @@ async function onSubmit(event) {
     onResponse({ request, response, options }) {
       products.value.push(response._data.newProduct)
       isModalCreateOpen.value = false
-      selectedOccasion.value = null
-      uploadedImage.value = null
-      state = {
-        name: undefined,
-        price: undefined,
-        description: undefined,
-        category: undefined,
-      }
-    
+      occasions.value = []
+      state.category = undefined
+      state.name = undefined
+      state.price = undefined
+      state.description = undefined
     }
   });
 }
 
-const deleteProduct = (id) => {
-  useFetch(`product/${id}`, {
+const deleteProduct = async (id) => {
+  await useFetch(`product/${id}`, {
     baseURL: config.public.API_BASE,
     method: 'DELETE',
+    onResponse({ request, response, options }) {
+      const deletedIndex = products.value.findIndex((el) => {
+        return el._id == response._data.deletedProduct._id
+      })
+      products.value.splice(deletedIndex, 1)
+    }
   })
+}
+
+const updateProduct = async (id) => {
+  isUpdate.value = true
+  selectedProduct.value = id
+
+  await useFetch(`product/${id}`, {
+    baseURL: config.public.API_BASE,
+    method: 'GET',
+    onResponse({ request, response, options }) {
+      state.name = response._data.productData.name
+      state.price = response._data.productData.price
+      state.description = response._data.productData.description
+      state.category = response._data.productData.category
+      selectedOccasion.value = response._data.productData.occasion
+      uploadedImage.value = response._data.productData.image
+      isModalCreateOpen.value = true
+    }
+  });
+
 }
 
 
