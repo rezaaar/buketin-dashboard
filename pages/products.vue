@@ -200,7 +200,6 @@ const submitFile = async () => {
 
       onResponse({ response }) {
         uploadedImage.value = response._data.filename
-        console.log(uploadedImage.value);
       }
     })
   } catch (error) {
@@ -241,6 +240,7 @@ async function onSubmit(event) {
         state.name = undefined
         state.price = undefined
         state.description = undefined
+        uploadedImage.value = null
       }
     });
 
@@ -266,6 +266,7 @@ async function onSubmit(event) {
       state.name = undefined
       state.price = undefined
       state.description = undefined
+      uploadedImage.value = null
     }
   });
 }
@@ -300,7 +301,6 @@ const updateProduct = async (id) => {
       isModalCreateOpen.value = true
     }
   });
-
 }
 
 
